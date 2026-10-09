@@ -32,17 +32,18 @@ if [ ${#fora[@]} -gt 0 ] && [ -z "$aberto" ]; then
   titulo="🔴 Fora do ar: ${fora[*]}"
   [ ${#fora[@]} -eq ${#NOMES[@]} ] && titulo="🔴 VPS fora do ar? Nenhum endereço responde"
   [ "${SIMULAR_QUEDA:-false}" = true ] && titulo="🧪 Teste do monitor: ${fora[*]}"
-  gh issue create --label fora-do-ar --title "$titulo" --body "Detectado de fora da VPS em $quando (3 tentativas em 40 s).
+  url=$(gh issue create --label fora-do-ar --title "$titulo" --body "Detectado de fora da VPS em $quando (3 tentativas em 40 s).
 
 Painel: https://agente.drfabioparente.com.br/central/
 Hostinger: https://hpanel.hostinger.com/
 
-Este aviso fecha sozinho quando tudo voltar."
+Este aviso fecha sozinho quando tudo voltar.")
+  echo "$url"
+  aberto=${url##*/}   # a listagem do GitHub demora a enxergar um aviso recém-criado
 fi
 
 # Tudo no ar (ou fim do teste): fecha o aviso aberto
-if [ ${#fora[@]} -eq 0 ] || [ "${SIMULAR_QUEDA:-false}" = true ]; then
-  aberto=$(gh issue list --state open --label fora-do-ar --json number --jq '.[0].number // empty')
-  if [ -n "$aberto" ]; then gh issue close "$aberto" --comment "🟢 Tudo no ar de novo em $quando."; fi
+if [ -n "$aberto" ] && { [ ${#fora[@]} -eq 0 ] || [ "${SIMULAR_QUEDA:-false}" = true ]; }; then
+  gh issue close "$aberto" --comment "🟢 Tudo no ar de novo em $quando."
 fi
 exit 0
