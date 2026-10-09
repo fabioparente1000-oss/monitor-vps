@@ -1,0 +1,30 @@
+name: Monitor da VPS
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # o GitHub pode atrasar alguns minutos em horários de pico
+  workflow_dispatch:
+    inputs:
+      simular_queda:
+        description: "Teste: finge que a Ana caiu (abre e fecha um aviso)"
+        type: boolean
+        default: false
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: monitor
+
+jobs:
+  checar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checar os endereços
+        run: bash monitor.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIMULAR_QUEDA: ${{ inputs.simular_queda || 'false' }}

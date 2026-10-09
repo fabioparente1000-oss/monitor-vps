@@ -1,0 +1,24 @@
+name: Manter o monitor ativo
+
+# O GitHub desliga os agendamentos de um repositório público que fica 60 dias sem atividade.
+# Um commit por mês evita isso.
+on:
+  schedule:
+    - cron: "0 12 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  marcar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          date -u +%FT%TZ > ultima-verificacao.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ultima-verificacao.txt
+          git commit -q -m "Monitor ativo ($(date -u +%F))"
+          git push -q
